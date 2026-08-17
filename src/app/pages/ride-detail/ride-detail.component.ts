@@ -1,0 +1,12 @@
+import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Ride } from '../../models/ride.model';
+import { RideService } from '../../services/ride.service';
+import { StatusBadgeComponent } from '../../components/status-badge/status-badge.component';
+@Component({ standalone: true, imports: [RouterLink, StatusBadgeComponent], template: `
+  <a class="back" routerLink="/rides">← Back to rides</a>
+  @if (loading()) { <p class="state">Loading ride…</p> } @else { @if (ride(); as item) {
+    <section class="hero"><div><p>{{ item.date }}</p><h1>{{ item.route }}</h1><span>Pickup at {{ item.pickupTime }}</span></div><app-status-badge [status]="item.status" /></section>
+    <section class="content"><div class="map"><span>Route preview</span><div>Pickup <b>──────</b> Office</div></div><div class="details"><h2>Ride details</h2><p><small>Pickup location</small>{{ item.pickupLocation }}</p><p><small>Pickup time</small>{{ item.pickupTime }}</p><p><small>Vehicle</small>{{ item.vehicle }}</p><p><small>Driver</small>{{ item.driver }}</p></div></section>
+  } @else { <p class="state">Ride not found.</p> } }`, styles: `.back{color:#2563eb;text-decoration:none;font-weight:700}.hero{display:flex;justify-content:space-between;gap:1rem;padding:2rem 0;border-bottom:1px solid #e2e8f0}.hero h1{color:#17243d;margin:.5rem 0}.hero p,.hero span{color:#64748b}.content{display:grid;grid-template-columns:1.15fr 1fr;gap:1.5rem;margin-top:1.5rem}.map,.details{background:#fff;border:1px solid #e7edf5;border-radius:14px;padding:1.5rem}.map{min-height:230px;background:linear-gradient(135deg,#e0ecff,#f5f9ff);display:grid;place-content:center;gap:1.5rem;text-align:center;color:#2563eb;font-weight:700}.details h2{margin:0;color:#17243d}.details p{display:inline-flex;flex-direction:column;width:50%;gap:.25rem;color:#17243d;font-weight:700}.details small{color:#64748b;font-weight:400}.state{padding:2rem;background:#fff;border-radius:12px;color:#64748b}@media(max-width:650px){.content{grid-template-columns:1fr}.details p{width:100%}}` })
+export class RideDetailComponent { private route = inject(ActivatedRoute); private service = inject(RideService); ride = signal<Ride | undefined>(undefined); loading = signal(true); constructor() { this.service.getRide(Number(this.route.snapshot.paramMap.get('id'))).subscribe({ next: item => { this.ride.set(item); this.loading.set(false); }, error: () => this.loading.set(false) }); } }
